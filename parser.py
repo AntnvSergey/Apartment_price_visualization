@@ -1,12 +1,13 @@
 from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
 import requests
+import time
 import folium
 import pandas as pd
 from pandas import DataFrame
 
 
-class Captcha_Error(Exception):
+class CaptchaError(Exception):
     pass
 
 
@@ -14,11 +15,13 @@ class Captcha_Error(Exception):
 HEADERS = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1)\
 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36",
-        "Accept": "*/*",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                  "*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
         "Referer": "https://cian.ru",
-        "Connection": "keep-alive"
+        "Connection": "keep-alive",
+        "Cache-Control": 'no-cache',
     }
 
 # List of St. Petersburg districts and their index
@@ -33,11 +36,12 @@ list_of_spb_district = {"Admiralteysky": 150, "Kirovsky": 146, "Kyrortniy": 141,
 list_of_moscow_district = {"Novomoskovsky": 325, "Northwestern": 1, "Northern": 5,
                            "Northeastern": 6, "Troitsky": 326, "West": 11, "Central": 2,
                            "Eastern": 7, "Zelenogradsky": 151, "Southwestern": 2,
-                           "South": 9, "ЮВАО": 8}
+                           "South": 9, "Southeastern": 8}
 
 # List of Ekaterinburg districts and their index
-list_of_ekb_district = {"VerkhIsetsky": 286, "Kirovsky": 289, "Oktyabrsky": 290, "Chkalovsky": 291,
-                        "Zheleznodorozhnyy": 287, "Leninsky": 292, "Ordzhonikidzevsky": 288}
+list_of_ekb_district = {"VerkhIsetsky": 286, "Kirovsky": 289, "Oktyabrsky": 290,
+                        "Chkalovsky": 291, "Zheleznodorozhnyy": 287, "Leninsky": 292,
+                        "Ordzhonikidzevsky": 288}
 
 
 city_district = {"St.Petersburg": list_of_spb_district,
@@ -81,6 +85,7 @@ def get_pages(city):
         page_list = []
 
         for count in range(1, 4):
+            time.sleep(5)
             page = session.get(get_url(city, index, count), headers=HEADERS)
             page_list.append(page)
         district_list[district] = page_list
@@ -146,7 +151,13 @@ def save_info(filename, districts, tot_price, price_meter, areas):
 
 def show_map(city):
     """Build a city map. You can see map in html file"""
-    map = folium.Map(location=(59.934790, 30.331254), zoom_start=12)
+
+    city_coordinates = {
+        'St.Petersburg': (59.934551, 30.332822),
+        'Moscow': (55.753518, 37.622558),
+        'Ekaterinburg': (56.835566, 60.612731)
+    }
+    map = folium.Map(location=city_coordinates[city], zoom_start=12)
     state_geo = city+'.geojson'
     state_data = pd.read_csv(city+".csv")
 
@@ -164,13 +175,10 @@ def show_map(city):
     map.save(city+'.html')
 
 
-city = "Moscow"
+city = input()
 
 district_list = get_pages(city)
 total_price, price_per_meter, area = get_info(district_list)
-print(total_price)
-print(price_per_meter)
-print(area)
 
 save_info(city, list(city_district[city].keys()), total_price, price_per_meter, area)
 plot_histogram(city_district[city].keys(), total_price, "district", "total_price", city)
