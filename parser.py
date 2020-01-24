@@ -34,8 +34,8 @@ list_of_spb_district = {"Admiralteysky": 150, "Kirovsky": 146, "Kyrortniy": 141,
 
 # List of Moscow districts and their index
 list_of_moscow_district = {"Novomoskovsky": 325, "Northwestern": 1, "Northern": 5,
-                           "Northeastern": 6, "Troitsky": 326, "West": 11, "Central": 2,
-                           "Eastern": 7, "Zelenogradsky": 151, "Southwestern": 2,
+                           "Northeastern": 6, "Troitsky": 326, "West": 11, "Central": 4,
+                           "Eastern": 7, "Zelenogradsky": 151, "Southwestern": 10,
                            "South": 9, "Southeastern": 8}
 
 # List of Ekaterinburg districts and their index
@@ -69,7 +69,7 @@ def get_average(data):
     if len(data) == 0:
         print("Most likely captcha appeared on the page, try to run the program\
 after some time or change ip address")
-        raise Captcha_Error
+        raise CaptchaError
     else:
         data.sort()
         index = len(data) // 2
@@ -85,7 +85,7 @@ def get_pages(city):
         page_list = []
 
         for count in range(1, 4):
-            time.sleep(5)
+            time.sleep(2)
             page = session.get(get_url(city, index, count), headers=HEADERS)
             page_list.append(page)
         district_list[district] = page_list
@@ -175,8 +175,8 @@ def show_map(city):
     map.save(city+'.html')
 
 
-city = input()
-
+print("input city")
+city = input("city: ")
 district_list = get_pages(city)
 total_price, price_per_meter, area = get_info(district_list)
 
